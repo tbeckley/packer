@@ -51,14 +51,15 @@ impl std::fmt::Display for ObjectTooBigError {
 }
 
 // Use this one for fast runtime at the cost of potentially many bins...
-pub fn online_nf<T: Pack>(mut items: Vec<T>, capacity: u64) -> Result<Vec<Bin<T>>, ObjectTooBigError> {
+pub fn online_nf<T, L>(items: L, capacity: u64) -> Result<Vec<Bin<T>>, ObjectTooBigError>
+    where T: Pack, L: Iterator<Item=T> {
     // No sorting because that would raise our runtime from O(n) to at least O(n log(n)).
     // TODO - Replace the Vec with a stream or some similar type
 
     let mut current_bin: Bin<T> = Bin::new(capacity);
     let mut closed_bins: Vec<Bin<T>> = Vec::new();
 
-    for item in items.drain(..) {
+    for item in items {
         let item_size = item.get_size();
 
         if item_size > current_bin.remaining_space   {
